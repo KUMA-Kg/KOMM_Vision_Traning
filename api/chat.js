@@ -10,6 +10,7 @@ export default async function handler(req, res) {
 
   try {
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    console.log('Request body:', JSON.stringify(body));
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -21,8 +22,11 @@ export default async function handler(req, res) {
       body: JSON.stringify(body),
     });
     const data = await response.json();
+    console.log('Anthropic response status:', response.status);
+    console.log('Anthropic response:', JSON.stringify(data));
     res.status(response.status).json(data);
   } catch(e) {
+    console.log('Error:', e.message);
     res.status(500).json({ error: e.message });
   }
 }
