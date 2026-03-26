@@ -532,100 +532,6 @@
     .prompt-card, .recording-area { padding: 1rem; }
   }
 
-  /* ===== CHAT ===== */
-  .chat-area {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-  }
-  .chat-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--border);
-    font-family: 'Space Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text3);
-  }
-  .chat-messages {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-height: 320px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .chat-bubble {
-    max-width: 88%;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 14px;
-    line-height: 1.7;
-    white-space: pre-wrap;
-  }
-  .chat-bubble.ai {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text2);
-    align-self: flex-start;
-    border-radius: 4px 12px 12px 12px;
-  }
-  .chat-bubble.user {
-    background: var(--accent-s-dim);
-    border: 1px solid rgba(90,138,106,0.2);
-    color: var(--text);
-    align-self: flex-end;
-    border-radius: 12px 4px 12px 12px;
-  }
-  .chat-bubble.thinking {
-    color: var(--text3);
-    font-style: italic;
-  }
-  .chat-input-row {
-    display: flex;
-    gap: 8px;
-    padding: 12px;
-    border-top: 1px solid var(--border);
-    align-items: flex-end;
-  }
-  .chat-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border2);
-    border-radius: var(--radius);
-    padding: 10px 14px;
-    font-family: 'Noto Serif JP', serif;
-    font-size: 14px;
-    color: var(--text);
-    resize: none;
-    min-height: 44px;
-    max-height: 120px;
-    outline: none;
-    line-height: 1.6;
-    -webkit-appearance: none;
-  }
-  .chat-input:focus { border-color: var(--accent-s); }
-  .chat-send-btn {
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    background: var(--text);
-    color: var(--bg);
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 16px;
-    transition: opacity 0.2s;
-    -webkit-appearance: none;
-    touch-action: manipulation;
-  }
-  .chat-send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .chat-send-btn:hover:not(:disabled) { opacity: 0.8; }
-
   /* ===== HIDDEN ===== */
   .hidden { display: none !important; }
 </style>
@@ -773,7 +679,6 @@ const state = {
   currentSection: 0,
   recordings: {},
   summary: '',
-  chatHistory: [],  // [{role, text}]
   generating: false,
 };
 
@@ -940,7 +845,7 @@ function renderSummarySection() {
     const txt = state.recordings[sec.id]?.transcript || '';
     return `<div class="summary-entry">
       <div class="entry-label">${sec.navLabel}</div>
-      <div class="entry-content" id="entry-${sec.id}">${escapeHtml(txt)}</div>
+      <div class="entry-content">${escapeHtml(txt)}</div>
     </div>`;
   }).join('');
 
@@ -948,7 +853,7 @@ function renderSummarySection() {
     <div class="section-header">
       <div class="section-layer self">まとめ</div>
       <div class="section-title">語りを言語化する</div>
-      <div class="section-question">入力内容をAIで整理し、「自分ごとの語り」として文章にまとめます。</div>
+      <div class="section-question">入力内容をAIで整理し、「自分ごとの語り」として文章にまとめます。コピーしてClaudeに貼り付けてコーチングを続けられます。</div>
     </div>
 
     <div class="summary-section">
@@ -958,15 +863,6 @@ function renderSummarySection() {
       </div>
       <div class="summary-body" id="summaryBody">
         ${entriesHtml}
-      </div>
-    </div>
-
-    <div id="chatArea" class="chat-area" style="display:none">
-      <div class="chat-header">AIコーチと対話する</div>
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="chat-input-row">
-        <textarea class="chat-input" id="chatInput" rows="1" placeholder="返答・質問を入力..." onkeydown="chatKeydown(event)"></textarea>
-        <button class="chat-send-btn" id="chatSendBtn" onclick="sendChat()">&#8593;</button>
       </div>
     </div>
 
@@ -980,16 +876,13 @@ function renderSummarySection() {
     </div>
   `;
 
-  if (state.summary) {
-    switchTab('output');
-  }
+  if (state.summary) switchTab('output');
 }
 
 function switchTab(tab) {
   document.getElementById('tabRaw').classList.toggle('active', tab === 'raw');
   document.getElementById('tabOutput').classList.toggle('active', tab === 'output');
   const body = document.getElementById('summaryBody');
-  const chatArea = document.getElementById('chatArea');
 
   if (tab === 'raw') {
     const entriesHtml = SECTIONS.map(sec => {
@@ -1001,17 +894,12 @@ function switchTab(tab) {
     }).join('');
     body.innerHTML = entriesHtml;
     document.getElementById('btnCopyOutput').style.display = 'none';
-    if (chatArea) chatArea.style.display = 'none';
   } else {
     body.innerHTML = state.summary
       ? `<div class="output-text">${escapeHtml(state.summary)}</div>`
       : `<div class="output-placeholder">「AI で言語化する」ボタンを押してください。</div>`;
     if (state.summary) {
       document.getElementById('btnCopyOutput').style.display = '';
-      if (chatArea) {
-        chatArea.style.display = '';
-        renderChatMessages();
-      }
     }
   }
 }
@@ -1110,13 +998,10 @@ async function generateSummary() {
   const btn = document.getElementById('btnGenerate');
   btn.disabled = true;
   btn.textContent = '生成中...';
-
-  // タブ切り替えせず直接bodyだけ更新（chatAreaのnullクラッシュを避ける）
   document.getElementById('tabRaw').classList.remove('active');
   document.getElementById('tabOutput').classList.add('active');
   document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">言語化しています...</div>`;
-  const chatArea = document.getElementById('chatArea');
-  if (chatArea) chatArea.style.display = 'none';
+  document.getElementById('btnCopyOutput').style.display = 'none';
 
   const entries = SECTIONS.map(sec => {
     const txt = state.recordings[sec.id]?.transcript || '（未入力）';
@@ -1132,10 +1017,7 @@ async function generateSummary() {
 4. **接続の文（3〜5文）** — ビジョン・自分・事業が一本の線でつながる「自分ごとの語り」のドラフト
 
 語りのドラフトは、本人が実際に声に出せるような、自然な日本語の文章にしてください。
-固有の体験・感情・具体的なエピソードを盛り込み、「借り物感」のない言葉にすること。
-まとめの最後に、語りをさらに磨くための質問を1つだけ問いかけてください。`;
-
-  const userContent = `以下は私の9つの問いへの回答です。\n\n${entries}`;
+固有の体験・感情・具体的なエピソードを盛り込み、「借り物感」のない言葉にすること。`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1145,97 +1027,19 @@ async function generateSummary() {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
         system: systemPrompt,
-        messages: [{ role: 'user', content: userContent }],
+        messages: [{ role: 'user', content: `以下は私の9つの問いへの回答です。\n\n${entries}` }],
       }),
     });
     const data = await res.json();
-    const text = data.content?.map(b => b.text || '').join('') || '（エラーが発生しました）';
-    state.summary = text;
-    state.chatHistory = [{ role: 'ai', text }];
-    // 成功後にswitchTabで正しく描画
-    switchTab('output');
+    state.summary = data.content?.map(b => b.text || '').join('') || '（エラーが発生しました）';
+    document.getElementById('summaryBody').innerHTML = `<div class="output-text">${escapeHtml(state.summary)}</div>`;
+    document.getElementById('btnCopyOutput').style.display = '';
   } catch(e) {
-    state.summary = '通信エラーが発生しました。インターネット接続を確認して再試行してください。';
-    document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">${state.summary}</div>`;
+    document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">通信エラーが発生しました。インターネット接続を確認して再試行してください。</div>`;
   } finally {
     state.generating = false;
     btn.disabled = false;
     btn.textContent = '再生成';
-  }
-}
-
-// ===== CHAT =====
-function renderChatMessages() {
-  const el = document.getElementById('chatMessages');
-  if (!el) return;
-  el.innerHTML = state.chatHistory.map(m =>
-    `<div class="chat-bubble ${m.role}">${escapeHtml(m.text)}</div>`
-  ).join('');
-  el.scrollTop = el.scrollHeight;
-}
-
-function chatKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    sendChat();
-  }
-}
-
-async function sendChat() {
-  const input = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
-  const userText = input.value.trim();
-  if (!userText || state.generating) return;
-
-  input.value = '';
-  input.style.height = 'auto';
-  state.chatHistory.push({ role: 'user', text: userText });
-  renderChatMessages();
-
-  state.generating = true;
-  sendBtn.disabled = true;
-  state.chatHistory.push({ role: 'ai thinking', text: '考えています...' });
-  renderChatMessages();
-
-  const entries = SECTIONS.map(sec => {
-    const txt = state.recordings[sec.id]?.transcript || '（未入力）';
-    return `【${sec.navLabel}】${txt}`;
-  }).join('\n');
-
-  const systemPrompt = `あなたは、若い起業家・事業家の「自分ごとの語り」を磨くコーチです。
-ユーザーの9つのセクションの回答と、これまでの会話の流れを踏まえて返答してください。
-語りを深め、具体化し、本人の言葉になるよう丁寧にサポートしてください。
-返答は簡潔に、200文字以内を目安にしてください。
-
-ユーザーの9セクション回答：
-${entries}`;
-
-  const messages = state.chatHistory
-    .filter(m => m.role !== 'ai thinking')
-    .map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text }));
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        system: systemPrompt,
-        messages,
-      }),
-    });
-    const data = await res.json();
-    const text = data.content?.map(b => b.text || '').join('') || '（エラーが発生しました）';
-    state.chatHistory.pop(); // remove thinking bubble
-    state.chatHistory.push({ role: 'ai', text });
-  } catch(e) {
-    state.chatHistory.pop();
-    state.chatHistory.push({ role: 'ai', text: '通信エラーが発生しました。' });
-  } finally {
-    state.generating = false;
-    sendBtn.disabled = false;
-    renderChatMessages();
   }
 }
 
@@ -1258,7 +1062,17 @@ function exportText() {
 }
 
 function copyOutput() {
-  navigator.clipboard.writeText(state.summary).then(() => showToast('コピーしました'));
+  const coachingPrompt = `以下は、私がビジョン・自分・事業を接続するトレーニングツールで作成した「自分ごとの語り」です。
+あなたはプロのコーチとして、この内容をもとに私の語りをさらに深め、磨くサポートをしてください。
+
+まず以下の内容を読んで、気づいたこと・深めたい点・問いかけを1つ返してください。
+
+---
+
+${state.summary}
+
+---`;
+  navigator.clipboard.writeText(coachingPrompt).then(() => showToast('プロンプト付きでコピーしました'));
 }
 
 // ===== UI HELPERS =====
