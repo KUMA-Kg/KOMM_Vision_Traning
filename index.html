@@ -1110,8 +1110,13 @@ async function generateSummary() {
   const btn = document.getElementById('btnGenerate');
   btn.disabled = true;
   btn.textContent = '生成中...';
-  switchTab('output');
+
+  // タブ切り替えせず直接bodyだけ更新（chatAreaのnullクラッシュを避ける）
+  document.getElementById('tabRaw').classList.remove('active');
+  document.getElementById('tabOutput').classList.add('active');
   document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">言語化しています...</div>`;
+  const chatArea = document.getElementById('chatArea');
+  if (chatArea) chatArea.style.display = 'none';
 
   const entries = SECTIONS.map(sec => {
     const txt = state.recordings[sec.id]?.transcript || '（未入力）';
@@ -1147,10 +1152,11 @@ async function generateSummary() {
     const text = data.content?.map(b => b.text || '').join('') || '（エラーが発生しました）';
     state.summary = text;
     state.chatHistory = [{ role: 'ai', text }];
+    // 成功後にswitchTabで正しく描画
     switchTab('output');
   } catch(e) {
     state.summary = '通信エラーが発生しました。インターネット接続を確認して再試行してください。';
-    switchTab('output');
+    document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">${state.summary}</div>`;
   } finally {
     state.generating = false;
     btn.disabled = false;
