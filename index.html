@@ -869,7 +869,7 @@ function renderSummarySection() {
     <div class="action-bar">
       <button class="btn-secondary" onclick="navigateTo(${SECTIONS.length - 1})">← 戻る</button>
       <div style="flex:1"></div>
-      <button class="btn-secondary" id="btnCopyOutput" onclick="copyOutput()" style="display:none">コピー</button>
+      <button class="btn-secondary" id="btnCopyOutput" onclick="copyOutput()" style="display:none">コピーしてClaudeへ →</button>
       <button class="btn-primary" id="btnGenerate" onclick="generateSummary()">
         ${state.summary ? '再生成' : 'AI で言語化する'}
       </button>
@@ -1022,7 +1022,11 @@ async function generateSummary() {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1000,
@@ -1072,7 +1076,16 @@ function copyOutput() {
 ${state.summary}
 
 ---`;
-  navigator.clipboard.writeText(coachingPrompt).then(() => showToast('プロンプト付きでコピーしました'));
+
+  navigator.clipboard.writeText(coachingPrompt).then(() => {
+    showToast('コピーしました。Claudeを開きます...');
+    setTimeout(() => {
+      window.open('https://claude.ai', '_blank');
+    }, 800);
+  }).catch(() => {
+    // クリップボード失敗時もClaudeは開く
+    window.open('https://claude.ai', '_blank');
+  });
 }
 
 // ===== UI HELPERS =====
