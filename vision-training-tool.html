@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Vision × Self × Business — 語りトレーニング</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0f0f0d;
+    --surface: #191917;
+    --surface2: #222220;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #e8e6df;
+    --text2: #8a8880;
+    --text3: #5a5855;
+    --accent-v: #a89060;
+    --accent-s: #5a8a6a;
+    --accent-b: #6070a8;
+    --accent-v-dim: rgba(168,144,96,0.12);
+    --accent-s-dim: rgba(90,138,106,0.12);
+    --accent-b-dim: rgba(96,112,168,0.12);
+    --red: #c06050;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    line-height: 1.8;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* ===== LAYOUT ===== */
+  .app { display: grid; grid-template-rows: auto 1fr auto; min-height: 100vh; }
+
+  header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .header-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+
+  .progress-bar {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .progress-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border2);
+    transition: all 0.4s ease;
+  }
+  .progress-dot.active { background: var(--text2); }
+  .progress-dot.done { background: var(--accent-s); }
+
+  main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
+    gap: 0;
+  }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar {
+    padding: 2rem 1.5rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .section-nav { display: flex; flex-direction: column; gap: 4px; }
+
+  .nav-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+  .nav-item:hover { background: var(--surface); }
+  .nav-item.active {
+    background: var(--surface2);
+    border-color: var(--border2);
+  }
+  .nav-item.completed .nav-dot { background: var(--accent-s); }
+
+  .nav-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border2);
+    flex-shrink: 0;
+    margin-top: 7px;
+    transition: all 0.3s;
+  }
+  .nav-item.active .nav-dot { background: var(--text2); }
+
+  .nav-label {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.4;
+  }
+  .nav-item.active .nav-label { color: var(--text); }
+  .nav-sublabel {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .nav-section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    padding: 1.5rem 12px 0.5rem;
+  }
+
+  /* ===== MAIN CONTENT ===== */
+  .content {
+    padding: 2.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .section-header { }
+  .section-layer {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 0.5rem;
+  }
+  .section-layer.vision { color: var(--accent-v); }
+  .section-layer.self { color: var(--accent-s); }
+  .section-layer.business { color: var(--accent-b); }
+
+  .section-title {
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  .section-question {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  /* ===== PROMPT CARD ===== */
+  .prompt-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    border-left: 3px solid var(--accent-v);
+  }
+  .prompt-card.self { border-left-color: var(--accent-s); }
+  .prompt-card.business { border-left-color: var(--accent-b); }
+
+  .prompt-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+  .prompt-text {
+    font-size: 15px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  /* ===== RECORDING AREA ===== */
+  .recording-area {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+  }
+
+  .record-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .btn-record {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    min-height: 44px;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.05em;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+  .btn-record:hover { background: var(--surface2); color: var(--text); }
+  .btn-record.recording {
+    background: rgba(192,96,80,0.15);
+    border-color: var(--red);
+    color: var(--red);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  .record-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--text3);
+    transition: all 0.2s;
+  }
+  .btn-record.recording .record-dot { background: var(--red); }
+
+  .record-timer {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text3);
+  }
+
+  .voice-input-area {
+    min-height: 80px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+    white-space: pre-wrap;
+    position: relative;
+  }
+  .voice-input-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  textarea.voice-input-area {
+    width: 100%;
+    resize: vertical;
+    outline: none;
+    font-family: 'Noto Serif JP', serif;
+  }
+  textarea.voice-input-area:focus { border-color: var(--border2); }
+
+  .waveform {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 24px;
+    padding: 4px 0;
+  }
+  .wave-bar {
+    width: 3px;
+    background: var(--red);
+    border-radius: 2px;
+    opacity: 0.6;
+    animation: wave 0.8s ease-in-out infinite;
+  }
+  .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+  .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+  .wave-bar:nth-child(4) { animation-delay: 0.15s; }
+  .wave-bar:nth-child(5) { animation-delay: 0.05s; }
+  @keyframes wave {
+    0%,100% { height: 4px; }
+    50% { height: 18px; }
+  }
+
+  /* ===== SUMMARY / OUTPUT ===== */
+  .summary-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .summary-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-tab {
+    padding: 12px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .summary-tab:hover { color: var(--text2); }
+  .summary-tab.active { color: var(--text); border-bottom-color: var(--accent-s); }
+
+  .summary-body { padding: 1.5rem; }
+
+  .summary-entry {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-entry:last-child { border-bottom: none; }
+
+  .entry-label {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'Space Mono', monospace;
+    line-height: 1.6;
+    padding-top: 2px;
+  }
+  .entry-content {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+  .entry-content:empty::before { content: '—'; color: var(--text3); }
+
+  /* ===== OUTPUT TEXT ===== */
+  .output-text {
+    font-size: 15px;
+    line-height: 2;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+  .output-placeholder {
+    font-size: 14px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* ===== ACTIONS ===== */
+  .action-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    padding: 12px 24px;
+    min-height: 44px;
+    border-radius: 100px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+  .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    padding: 11px 20px;
+    min-height: 44px;
+    border-radius: 100px;
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    touch-action: manipulation;
+  }
+  .btn-secondary:hover { background: var(--surface2); color: var(--text); }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .status-bar {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+  }
+  .status-bar .ok { color: var(--accent-s); }
+  .status-bar .warn { color: var(--accent-v); }
+
+  /* ===== COPY TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    padding: 10px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 999;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .app { grid-template-rows: auto auto 1fr auto; }
+    main { grid-template-columns: 1fr; }
+    .sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav-section-title { display: none; }
+    .section-nav {
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      min-width: max-content;
+    }
+    .nav-group {
+      display: flex;
+      flex-direction: row;
+      gap: 4px;
+      padding: 0 8px;
+      position: relative;
+    }
+    .nav-group:not(:first-child)::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 20%; bottom: 20%;
+      width: 1px;
+      background: var(--border2);
+    }
+    .nav-group-label {
+      display: flex;
+      align-items: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text3);
+      writing-mode: horizontal-tb;
+      padding: 0 4px 0 0;
+      align-self: center;
+    }
+    .nav-group-label.vision { color: var(--accent-v); }
+    .nav-group-label.self { color: var(--accent-s); }
+    .nav-group-label.business { color: var(--accent-b); }
+    .nav-item {
+      padding: 6px 10px;
+      flex-shrink: 0;
+    }
+    .nav-sublabel { display: none; }
+    .nav-dot { display: none; }
+    .nav-label { font-size: 12px; }
+    .content { padding: 1.25rem 1rem; gap: 1.25rem; }
+    .section-title { font-size: 18px; }
+    .btn-primary, .btn-secondary { padding: 10px 16px; font-size: 11px; }
+    header { padding: 1rem; }
+    footer { padding: 0.75rem 1rem; gap: 0.5rem; }
+    footer > div { gap: 6px; }
+  }
+
+  @media (max-width: 400px) {
+    .content { padding: 1rem 0.75rem; }
+    .prompt-card, .recording-area { padding: 1rem; }
+  }
+
+  /* ===== HIDDEN ===== */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <header>
+    <div class="header-title">Vision Training — 自分ごとの語り</div>
+    <div class="progress-bar" id="progressBar">
+      <!-- filled by JS -->
+    </div>
+  </header>
+
+  <main>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="nav-section-title">Vision</div>
+      <div class="section-nav" id="sectionNav">
+        <!-- filled by JS -->
+      </div>
+    </aside>
+
+    <!-- CONTENT -->
+    <div class="content" id="mainContent">
+      <!-- filled by JS -->
+    </div>
+  </main>
+
+  <footer>
+    <div class="status-bar" id="statusBar">
+      <span id="statusText">音声入力対応ブラウザ（Chrome推奨）</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn-secondary" id="btnExport">テキスト出力</button>
+      <button class="btn-primary" id="btnSummarize" disabled>まとめて言語化</button>
+    </div>
+  </footer>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA =====
+const SECTIONS = [
+  // VISION
+  {
+    id: 'why',
+    layer: 'vision',
+    layerLabel: 'Vision 層',
+    title: 'あなたのWhyは何か',
+    question: 'なぜこの事業・活動をやっているのか。お金や義務ではなく、「これをやらずにいられない」と思う理由は？',
+    prompt: '「なぜ自分はこれをやっているのか」——誰かに話しかけるように、1〜2分で語ってみてください。正しい答えはありません。',
+    navLabel: 'Why — 存在理由',
+    navSub: 'なぜやるのか',
+  },
+  {
+    id: 'who',
+    layer: 'vision',
+    layerLabel: 'Vision 層',
+    title: '誰の未来を変えたいか',
+    question: 'あなたの事業が成功したとき、誰が、どのように変わっていてほしいか。その人の顔・生活・気持ちを思い浮かべながら語ってください。',
+    prompt: '「この事業が届いてほしい人」を具体的にイメージして話してください。',
+    navLabel: 'Who — 理想の受益者',
+    navSub: '誰のための事業か',
+  },
+  {
+    id: 'where',
+    layer: 'vision',
+    layerLabel: 'Vision 層',
+    title: '10年後、何が変わっているか',
+    question: 'あなたが目指す未来の姿。社会・地域・業界が、どう変わっているか。大げさでいい。',
+    prompt: '10年後の理想の世界を、誰かに語るように話してください。',
+    navLabel: 'Where — 変化の方向',
+    navSub: '何が変わるのか',
+  },
+  // SELF
+  {
+    id: 'origin',
+    layer: 'self',
+    layerLabel: 'Self 層',
+    title: '源泉体験を語る',
+    question: '今の自分の方向性や価値観の原点になった体験。あのとき何を感じ、何が変わったか？',
+    prompt: '「なぜ自分がこの方向に来たか」を決定づけた体験を話してください。過去のエピソードで構いません。',
+    navLabel: '源泉体験',
+    navSub: '原点のできごと',
+  },
+  {
+    id: 'strength',
+    layer: 'self',
+    layerLabel: 'Self 層',
+    title: '自分の強みと資質',
+    question: '他の人よりも自然にできること、楽しめること。褒められてきたこと。',
+    prompt: '「自分が得意なこと・自然にやってしまうこと」を、謙遜せず話してください。',
+    navLabel: '強み・資質',
+    navSub: '自分だけの資産',
+  },
+  {
+    id: 'values',
+    layer: 'self',
+    layerLabel: 'Self 層',
+    title: '価値観と美意識',
+    question: '「これだけは曲げられない」という判断軸。好きなもの・嫌いなものの傾向から見えてくる審美眼。',
+    prompt: '「自分が大切にしていること」と「許せないこと」を話してください。',
+    navLabel: '価値観・美意識',
+    navSub: '判断の軸',
+  },
+  // BUSINESS
+  {
+    id: 'pain',
+    layer: 'business',
+    layerLabel: 'Business 層',
+    title: '誰の、何の痛みを解決するか',
+    question: 'この事業が解決しようとしている「苦しみ・不便・理不尽」は何か。誰が、どんな場面で困っているか。',
+    prompt: '「この事業がなければ、誰がどんな状態のままか」を話してください。',
+    navLabel: '痛み・課題',
+    navSub: '誰の苦しみか',
+  },
+  {
+    id: 'value',
+    layer: 'business',
+    layerLabel: 'Business 層',
+    title: '提供できる価値',
+    question: 'あなたの事業・活動によって、何がどう変わるか。お金・時間・感情・関係性——どんな変化が起きるか。',
+    prompt: '「自分が提供できること」と「それによって変わること」を話してください。',
+    navLabel: '提供価値',
+    navSub: '何が変わるか',
+  },
+  {
+    id: 'style',
+    layer: 'business',
+    layerLabel: 'Business 層',
+    title: 'やり方・固有のスタイル',
+    question: '同じ課題に取り組む人は他にもいる中で、自分はどんなアプローチで、何にこだわってやるか。',
+    prompt: '「自分のやり方の特徴・こだわり」を話してください。他との違いも意識して。',
+    navLabel: 'やり方・スタイル',
+    navSub: '固有のアプローチ',
+  },
+];
+
+// ===== STATE =====
+const state = {
+  currentSection: 0,
+  recordings: {},  // { sectionId: { transcript: '', duration: 0 } }
+  summary: '',
+  generating: false,
+};
+
+// ===== SPEECH RECOGNITION =====
+let recognition = null;
+let recordingTimer = null;
+let recordingSeconds = 0;
+let isRecording = false;
+
+function initSpeechRecognition() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('statusText').textContent = '音声入力非対応のブラウザです。テキスト入力モードで使用してください。';
+    return false;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (e) => {
+    const sectionId = SECTIONS[state.currentSection].id;
+    let interim = '';
+    let final = state.recordings[sectionId]?.transcript || '';
+    // rebuild
+    let rebuilt = '';
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) rebuilt += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    if (rebuilt) final = rebuilt;
+    const combined = final + (interim ? ' …' + interim : '');
+    document.getElementById('transcriptArea').value = combined;
+    if (!state.recordings[sectionId]) state.recordings[sectionId] = {};
+    state.recordings[sectionId].transcript = rebuilt || final;
+    updateSummarizeBtn();
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error !== 'no-speech') {
+      showStatus('音声認識エラー: ' + e.error, 'warn');
+    }
+  };
+
+  recognition.onend = () => {
+    if (isRecording) {
+      // auto-restart to keep recording
+      try { recognition.start(); } catch(e) {}
+    }
+  };
+
+  return true;
+}
+
+// ===== RENDER =====
+function renderNav() {
+  const nav = document.getElementById('sectionNav');
+  nav.innerHTML = '';
+  const isMobile = window.innerWidth <= 768;
+  let lastLayer = '';
+  let groupEl = null;
+
+  SECTIONS.forEach((sec, i) => {
+    if (sec.layer !== lastLayer) {
+      if (isMobile) {
+        groupEl = document.createElement('div');
+        groupEl.className = 'nav-group';
+        const lbl = document.createElement('div');
+        lbl.className = 'nav-group-label ' + sec.layer;
+        lbl.textContent = sec.layer === 'vision' ? 'V' : sec.layer === 'self' ? 'S' : 'B';
+        groupEl.appendChild(lbl);
+        nav.appendChild(groupEl);
+      } else {
+        const title = document.createElement('div');
+        title.className = 'nav-section-title';
+        title.textContent = sec.layer === 'vision' ? 'Vision' : sec.layer === 'self' ? 'Self' : 'Business';
+        title.style.marginTop = lastLayer ? '0.5rem' : '0';
+        nav.appendChild(title);
+        groupEl = nav;
+      }
+      lastLayer = sec.layer;
+    }
+
+    const item = document.createElement('div');
+    item.className = 'nav-item'
+      + (i === state.currentSection ? ' active' : '')
+      + (state.recordings[sec.id]?.transcript ? ' completed' : '');
+    item.dataset.index = i;
+    item.innerHTML = `<div class="nav-dot"></div><div><div class="nav-label">${sec.navLabel}</div><div class="nav-sublabel">${sec.navSub}</div></div>`;
+    item.onclick = () => navigateTo(i);
+    (isMobile ? groupEl : nav).appendChild(item);
+  });
+}
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = SECTIONS.map((sec, i) => {
+    const cls = i < state.currentSection ? 'progress-dot done' : i === state.currentSection ? 'progress-dot active' : 'progress-dot';
+    return `<div class="${cls}"></div>`;
+  }).join('');
+}
+
+function renderContent() {
+  const sec = SECTIONS[state.currentSection];
+  const saved = state.recordings[sec.id];
+  const content = document.getElementById('mainContent');
+
+  content.innerHTML = `
+    <div class="section-header">
+      <div class="section-layer ${sec.layer}">${sec.layerLabel} · ${state.currentSection + 1} / ${SECTIONS.length}</div>
+      <div class="section-title">${sec.title}</div>
+      <div class="section-question">${sec.question}</div>
+    </div>
+
+    <div class="prompt-card ${sec.layer}">
+      <div class="prompt-label">話すお題</div>
+      <div class="prompt-text">${sec.prompt}</div>
+    </div>
+
+    <div class="recording-area">
+      <div class="record-controls">
+        <button class="btn-record" id="btnRecord" onclick="toggleRecord()">
+          <div class="record-dot"></div>
+          <span id="recordLabel">録音開始</span>
+        </button>
+        <div class="waveform hidden" id="waveform">
+          ${[1,2,3,4,5].map(()=>`<div class="wave-bar"></div>`).join('')}
+        </div>
+        <div class="record-timer" id="recordTimer"></div>
+      </div>
+      <textarea
+        class="voice-input-area"
+        id="transcriptArea"
+        rows="5"
+        placeholder="ここに音声が文字起こしされます。直接入力・編集もできます。"
+        oninput="onTranscriptInput()"
+      >${saved?.transcript || ''}</textarea>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-secondary" onclick="clearCurrent()">クリア</button>
+      <div style="flex:1"></div>
+      ${state.currentSection > 0 ? `<button class="btn-secondary" onclick="navigateTo(${state.currentSection - 1})">← 前へ</button>` : ''}
+      ${state.currentSection < SECTIONS.length - 1 ? `<button class="btn-primary" onclick="navigateTo(${state.currentSection + 1})">次へ →</button>` : `<button class="btn-primary" onclick="showSummaryTab()">言語化する →</button>`}
+    </div>
+  `;
+
+  updateSummarizeBtn();
+}
+
+function renderSummarySection() {
+  const content = document.getElementById('mainContent');
+
+  const entriesHtml = SECTIONS.map(sec => {
+    const txt = state.recordings[sec.id]?.transcript || '';
+    return `<div class="summary-entry">
+      <div class="entry-label">${sec.navLabel}</div>
+      <div class="entry-content" id="entry-${sec.id}">${escapeHtml(txt)}</div>
+    </div>`;
+  }).join('');
+
+  content.innerHTML = `
+    <div class="section-header">
+      <div class="section-layer self">まとめ</div>
+      <div class="section-title">語りを言語化する</div>
+      <div class="section-question">入力内容をAIで整理し、「自分ごとの語り」として文章にまとめます。</div>
+    </div>
+
+    <div class="summary-section">
+      <div class="summary-tabs">
+        <button class="summary-tab active" id="tabRaw" onclick="switchTab('raw')">入力確認</button>
+        <button class="summary-tab" id="tabOutput" onclick="switchTab('output')">言語化結果</button>
+      </div>
+      <div class="summary-body" id="summaryBody">
+        ${entriesHtml}
+      </div>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn-secondary" onclick="navigateTo(${SECTIONS.length - 1})">← 戻る</button>
+      <div style="flex:1"></div>
+      <button class="btn-secondary" id="btnCopyOutput" onclick="copyOutput()" style="display:none">コピー</button>
+      <button class="btn-primary" id="btnGenerate" onclick="generateSummary()">
+        ${state.summary ? '再生成' : 'AI で言語化する'}
+      </button>
+    </div>
+  `;
+
+  if (state.summary) {
+    switchTab('output');
+  }
+}
+
+function switchTab(tab) {
+  document.getElementById('tabRaw').classList.toggle('active', tab === 'raw');
+  document.getElementById('tabOutput').classList.toggle('active', tab === 'output');
+  const body = document.getElementById('summaryBody');
+
+  if (tab === 'raw') {
+    const entriesHtml = SECTIONS.map(sec => {
+      const txt = state.recordings[sec.id]?.transcript || '';
+      return `<div class="summary-entry">
+        <div class="entry-label">${sec.navLabel}</div>
+        <div class="entry-content">${escapeHtml(txt)}</div>
+      </div>`;
+    }).join('');
+    body.innerHTML = entriesHtml;
+    document.getElementById('btnCopyOutput').style.display = 'none';
+  } else {
+    body.innerHTML = state.summary
+      ? `<div class="output-text">${escapeHtml(state.summary)}</div>`
+      : `<div class="output-placeholder">「AI で言語化する」ボタンを押してください。</div>`;
+    if (state.summary) {
+      document.getElementById('btnCopyOutput').style.display = '';
+    }
+  }
+}
+
+// ===== NAVIGATION =====
+function navigateTo(index) {
+  if (isRecording) stopRecord();
+  state.currentSection = index;
+  if (index === SECTIONS.length) {
+    showSummaryTab();
+  } else {
+    renderNav();
+    renderProgress();
+    renderContent();
+  }
+}
+
+function showSummaryTab() {
+  if (isRecording) stopRecord();
+  state.currentSection = SECTIONS.length; // virtual "summary" index
+  renderNav(); // re-render nav without active section
+  renderProgress();
+  renderSummarySection();
+}
+
+// ===== RECORDING =====
+function toggleRecord() {
+  if (isRecording) stopRecord();
+  else startRecord();
+}
+
+function startRecord() {
+  if (!recognition && !initSpeechRecognition()) {
+    // Fallback: just enable textarea
+    showStatus('テキストを直接入力してください', 'warn');
+    return;
+  }
+  isRecording = true;
+  recordingSeconds = 0;
+  document.getElementById('btnRecord').classList.add('recording');
+  document.getElementById('recordLabel').textContent = '停止';
+  document.getElementById('waveform').classList.remove('hidden');
+
+  recordingTimer = setInterval(() => {
+    recordingSeconds++;
+    const m = Math.floor(recordingSeconds / 60).toString().padStart(2,'0');
+    const s = (recordingSeconds % 60).toString().padStart(2,'0');
+    document.getElementById('recordTimer').textContent = `${m}:${s}`;
+  }, 1000);
+
+  try { recognition.start(); } catch(e) {}
+  showStatus('録音中...', 'ok');
+}
+
+function stopRecord() {
+  isRecording = false;
+  clearInterval(recordingTimer);
+  document.getElementById('btnRecord').classList.remove('recording');
+  document.getElementById('recordLabel').textContent = '録音開始';
+  document.getElementById('waveform').classList.add('hidden');
+  document.getElementById('recordTimer').textContent = '';
+  try { recognition.stop(); } catch(e) {}
+
+  // Save whatever is in textarea
+  const sec = SECTIONS[state.currentSection];
+  if (sec) {
+    const txt = document.getElementById('transcriptArea').value;
+    if (!state.recordings[sec.id]) state.recordings[sec.id] = {};
+    state.recordings[sec.id].transcript = txt;
+  }
+  updateSummarizeBtn();
+  showStatus('音声入力対応（Chrome推奨）', null);
+}
+
+function onTranscriptInput() {
+  const sec = SECTIONS[state.currentSection];
+  if (!sec) return;
+  const txt = document.getElementById('transcriptArea').value;
+  if (!state.recordings[sec.id]) state.recordings[sec.id] = {};
+  state.recordings[sec.id].transcript = txt;
+  updateSummarizeBtn();
+  renderNav(); // update completed state
+}
+
+function clearCurrent() {
+  const sec = SECTIONS[state.currentSection];
+  if (!sec) return;
+  state.recordings[sec.id] = { transcript: '' };
+  document.getElementById('transcriptArea').value = '';
+  updateSummarizeBtn();
+}
+
+// ===== SUMMARIZE WITH CLAUDE API =====
+async function generateSummary() {
+  state.generating = true;
+  const btn = document.getElementById('btnGenerate');
+  btn.disabled = true;
+  btn.textContent = '生成中...';
+  switchTab('output');
+  document.getElementById('summaryBody').innerHTML = `<div class="output-placeholder">言語化しています...</div>`;
+
+  const entries = SECTIONS.map(sec => {
+    const txt = state.recordings[sec.id]?.transcript || '（未入力）';
+    return `【${sec.navLabel} — ${sec.question}】\n${txt}`;
+  }).join('\n\n');
+
+  const systemPrompt = `あなたは、若い起業家・事業家の「自分ごとの語り」を磨くコーチです。
+ユーザーが9つのセクションに音声で答えた内容を受け取り、以下の形式でまとめてください：
+
+1. **ビジョンの核（2〜3文）** — Why・Who・Whereを統合した、この人の志の本質を短く言語化
+2. **自分の資産（3〜4文）** — 源泉体験・強み・価値観から見えてくる、この人の固有性
+3. **事業の意味（3〜4文）** — 誰の何を解決し、どんなスタイルで、何が変わるか
+4. **接続の文（3〜5文）** — ビジョン・自分・事業が一本の線でつながる「自分ごとの語り」のドラフト
+
+語りのドラフトは、本人が実際に声に出せるような、自然な日本語の文章にしてください。
+固有の体験・感情・具体的なエピソードを盛り込み、「借り物感」のない言葉にすること。`;
+
+  const userContent = `以下は私の9つの問いへの回答です。\n\n${entries}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userContent }],
+      }),
+    });
+    const data = await res.json();
+    const text = data.content?.map(b => b.text || '').join('') || '（エラーが発生しました）';
+    state.summary = text;
+    switchTab('output');
+  } catch(e) {
+    state.summary = '通信エラーが発生しました。インターネット接続を確認して再試行してください。';
+    switchTab('output');
+  } finally {
+    state.generating = false;
+    btn.disabled = false;
+    btn.textContent = '再生成';
+  }
+}
+
+// ===== EXPORT =====
+function exportText() {
+  const lines = ['Vision × Self × Business — 語りトレーニング記録\n'];
+  SECTIONS.forEach(sec => {
+    const txt = state.recordings[sec.id]?.transcript || '';
+    lines.push(`## ${sec.navLabel}\n${txt}\n`);
+  });
+  if (state.summary) {
+    lines.push(`## AI 言語化結果\n${state.summary}\n`);
+  }
+  const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'vision-training.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyOutput() {
+  navigator.clipboard.writeText(state.summary).then(() => showToast('コピーしました'));
+}
+
+// ===== UI HELPERS =====
+function updateSummarizeBtn() {
+  const hasAny = SECTIONS.some(sec => state.recordings[sec.id]?.transcript?.trim());
+  document.getElementById('btnSummarize').disabled = !hasAny;
+}
+
+function showStatus(msg, type) {
+  const el = document.getElementById('statusText');
+  el.textContent = msg;
+  el.className = type === 'ok' ? 'ok' : type === 'warn' ? 'warn' : '';
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+// ===== INIT =====
+document.getElementById('btnSummarize').onclick = showSummaryTab;
+document.getElementById('btnExport').onclick = exportText;
+
+initSpeechRecognition();
+renderNav();
+renderProgress();
+renderContent();
+
+window.addEventListener('resize', () => {
+  renderNav();
+});
+</script>
+</body>
+</html>
